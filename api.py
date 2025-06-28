@@ -1,4 +1,5 @@
 import requests
+import json  
 
 class API_Configuracion:
     def __init__(self):
@@ -26,24 +27,47 @@ class API_Configuracion:
             raise ValueError(f"Dificultad '{dificultad}' no existe")
             
         total = tamaño[0] * tamaño[1]
-        minas = int(total * porcentaje)
-        minas = max(1, minas)  # Mínimo 1 mina
+        minas = max(1, int(total * porcentaje))
+
             
         return {
             "filas": tamaño[0],
             "columnas": tamaño[1],
             "minas": minas
             }
-            
+        
 
-    def get_records(self):
-            response = requests.get(f"{self.base_url}/leaderboard.json")
-            response.raise_for_status()
-            records = response.json()
-            return sorted(records, key=lambda x: x.get("time", 0))[:3]
+    def guardar_record(self, jugador, tiempo, config):
+        """Guarda el record del jugador en records.json"""
+        try:
+            with open('records.json', 'r') as f:
+                records = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            records = []
+        
+        # Separar nombre y apellido
+        nombre, apellido = jugador.split(' ', 1) if ' ' in jugador else (jugador, '')
+        
+        nuevo_record = {
+            "first_name": nombre,
+            "last_name": apellido,
+            "time": tiempo
+        }
+        
+        records.append(nuevo_record)
+        records = sorted(records, key=lambda x: x['time'])[:3]  # Top 3 por tiempo
+        
+        with open('records.json', 'w') as f:
+            json.dump(records, f, indent=4)
+        
+        return records
 
+    def obtener_top_records(self):
+        """Obtiene los 3 mejores records"""
+        try:
+            with open('records.json', 'r') as f:
+                records = json.load(f)
+                return sorted(records, key=lambda x: x['tiempo'])[:3]
+        except (FileNotFoundError, json.JSONDecodeError):
+            return []
 
-    def guardar_record(self, tiempo):
-        if self.jugador:
-            print(f"\n¡Record de {self.jugador}: {tiempo} segundos!")
-            #aquí se enviaría a la API
