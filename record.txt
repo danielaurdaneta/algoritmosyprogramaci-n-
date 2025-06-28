@@ -1,0 +1,4 @@
+#accedes diccionario
+#pasas archivo.jason 
+
+#loads para descagarlo para txt
